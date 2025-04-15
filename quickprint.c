@@ -9,33 +9,53 @@
 #define IPP_PORT 631  // Standard IPP port
 
 void print_usage(char *prog_name) {
-    fprintf(stderr, "Usage: %s <file> <printer_ip> <color|bw> <onesided|twosided> <portrait|landscape>\n", prog_name);
+    fprintf(stderr, "Usage: %s <file> <printer_ip> [options]\n", prog_name);
+    fprintf(stderr, "--color			Print in color\n");
+    fprintf(stderr, "--greyscale		Print in monochrome\n");
+    fprintf(stderr, "--bw			Print in black and white\n");
+    fprintf(stderr, "--onesided			Print pages one sided (simplex)\n");
+    fprintf(stderr, "--twosided			Print pages two sided (duplex), flip image over long edge\n");
+    fprintf(stderr, "--twosided-longedge	Print pages two sided (duplex), flip image over long edge\n");
+    fprintf(stderr, "--twosided-shortedge	Print pages two sided (duplex), flip image over short edge\n");
+    fprintf(stderr, "--portrait			Print portrait orientation\n");
+    fprintf(stderr, "--landscape		Print landscape orientation\n");
+    fprintf(stderr, "--help,-h			Display help (this menu)\n");
     exit(1);
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 6) {
+    if (argc < 3) {
         print_usage(argv[0]);
     }
 
     const char *filename = argv[1];
     const char *printer_ip = argv[2];
-    const char *color_mode = argv[3];
-    const char *sides = argv[4];
-    const char *orientation = argv[5];
+    char *color_mode = NULL;
+    char *sides = NULL;
+    char *orientation = NULL;
 
-    // Validate arguments
-    if (strcmp(color_mode, "color") != 0 && strcmp(color_mode, "bw") != 0) {
-        fprintf(stderr, "Color mode must be 'color' or 'bw'\n");
-        print_usage(argv[0]);
-    }
-    if (strcmp(sides, "onesided") != 0 && strcmp(sides, "twosided") != 0) {
-        fprintf(stderr, "Sides must be 'onesided' or 'twosided'\n");
-        print_usage(argv[0]);
-    }
-    if (strcmp(orientation, "portrait") != 0 && strcmp(orientation, "landscape") != 0) {
-        fprintf(stderr, "Orientation must be 'portrait' or 'landscape'\n");
-        print_usage(argv[0]);
+    // Get arguments
+    for (int argi = 3; argi < argc; argi++){
+
+        if (!strcmp(argv[argi], "--color")){
+            color_mode = "color";
+        } else if (!strcmp(argv[argi], "--greyscale")){
+	    color_mode = "monochrome";
+	} else if (!strcmp(argv[argi], "--bw")){
+	    color_mode = "blackandwhite";
+	} else if (!strcmp(argv[argi], "--onesided")){
+	    sides = "one-sided";
+	} else if (!strcmp(argv[argi], "--twosided") || !strcmp(argv[argi], "--twosided-longedge")){
+	    sides = "two-sided-long-edge";
+	} else if (!strcmp(argv[argi], "--twosided-shortedge")){
+	    sides = "two-sided-short-edge";
+	} else if (!strcmp(argv[argi], "--portrait")){
+	    orientation = "portrait";
+	} else if (!strcmp(argv[argi], "--landscape")){
+	    orientation = "landscape";
+	} else {
+	    print_usage(argv[0]);
+	}
     }
 
     // Read file content
@@ -151,7 +171,7 @@ int main(int argc, char *argv[]) {
     memcpy(ipp_request + offset, filename, file_name_size);
     offset += file_name_size;
 
-    // Job name
+    // Username
     ipp_request[offset++] = 0x42;
     ipp_request[offset++] = 0x00;
     ipp_request[offset++] = 0x14;
@@ -168,46 +188,50 @@ int main(int argc, char *argv[]) {
     ipp_request[offset++] = 0x02;  // Start job-attributes
 
     // Color mode
-    ipp_request[offset++] = 0x44;  // keyword type
-    const char *ipp_color_label = "print-color-mode";
-    ipp_request[offset++] = 0x00;
-    ipp_request[offset++] = strlen(ipp_color_label);
-    memcpy(ipp_request + offset, ipp_color_label, strlen(ipp_color_label));
-    offset += strlen(ipp_color_label);
-    const char *ipp_color = strcmp(color_mode, "color") == 0 ? "color" : "monochrome";
-    int color_len = strlen(ipp_color);
-    ipp_request[offset++] = 0x00;
-    ipp_request[offset++] = color_len;
-    memcpy(ipp_request + offset, ipp_color, color_len);
-    offset += color_len;
+    if (color_mode){
+    	ipp_request[offset++] = 0x44;  // keyword type
+    	const char *ipp_color_label = "print-color-mode";
+    	ipp_request[offset++] = 0x00;
+   	ipp_request[offset++] = strlen(ipp_color_label);
+    	memcpy(ipp_request + offset, ipp_color_label, strlen(ipp_color_label));
+    	offset += strlen(ipp_color_label);
+    	int color_len = strlen(color_mode);
+    	ipp_request[offset++] = 0x00;
+    	ipp_request[offset++] = color_len;
+    	memcpy(ipp_request + offset, color_mode, color_len);
+    	offset += color_len;
+    }
 
     // Sides
-    ipp_request[offset++] = 0x44;  // keyword type
-    const char *ipp_sides_label = "sides";
-    ipp_request[offset++] = 0x00;
-    ipp_request[offset++] = strlen(ipp_sides_label);
-    memcpy(ipp_request + offset, ipp_sides_label, strlen(ipp_sides_label));
-    offset += strlen(ipp_sides_label);
-    const char *ipp_sides = strcmp(sides, "onesided") == 0 ? "one-sided" : "two-sided-long-edge";
-    int sides_len = strlen(ipp_sides);
-    ipp_request[offset++] = 0x00;
-    ipp_request[offset++] = sides_len;
-    memcpy(ipp_request + offset, ipp_sides, sides_len);
-    offset += sides_len;
+    if (sides){
+    	ipp_request[offset++] = 0x44;  // keyword type
+    	const char *ipp_sides_label = "sides";
+    	ipp_request[offset++] = 0x00;
+    	ipp_request[offset++] = strlen(ipp_sides_label);
+    	memcpy(ipp_request + offset, ipp_sides_label, strlen(ipp_sides_label));
+    	offset += strlen(ipp_sides_label);
+   	int sides_len = strlen(sides);
+    	ipp_request[offset++] = 0x00;
+    	ipp_request[offset++] = sides_len;
+    	memcpy(ipp_request + offset, sides, sides_len);
+    	offset += sides_len;
+    }
 
     // Orientation
-    ipp_request[offset++] = 0x23;  // enum type
-    const char* ipp_orientation_label = "orientation-requested";
-    ipp_request[offset++] = 0x00;
-    ipp_request[offset++] = strlen(ipp_orientation_label);
-    memcpy(ipp_request + offset, ipp_orientation_label, strlen(ipp_orientation_label));
-    offset += strlen(ipp_orientation_label);
-    ipp_request[offset++] = 0x00;
-    ipp_request[offset++] = 0x04;  // 4 bytes
-    ipp_request[offset++] = 0x00;
-    ipp_request[offset++] = 0x00;
-    ipp_request[offset++] = 0x00;
-    ipp_request[offset++] = strcmp(orientation, "portrait") == 0 ? 0x03 : 0x04;
+    if (orientation){
+	ipp_request[offset++] = 0x23;  // enum type
+	const char* ipp_orientation_label = "orientation-requested";
+	ipp_request[offset++] = 0x00;
+	ipp_request[offset++] = strlen(ipp_orientation_label);
+	memcpy(ipp_request + offset, ipp_orientation_label, strlen(ipp_orientation_label));
+	offset += strlen(ipp_orientation_label);
+	ipp_request[offset++] = 0x00;
+	ipp_request[offset++] = 0x04;  // 4 bytes
+	ipp_request[offset++] = 0x00;
+	ipp_request[offset++] = 0x00;
+	ipp_request[offset++] = 0x00;
+	ipp_request[offset++] = strcmp(orientation, "portrait") == 0 ? 0x03 : 0x04;
+    }
 
     // End of attributes
     ipp_request[offset++] = 0x03;  // End of attributes
