@@ -10,16 +10,16 @@
 
 void print_usage(char *prog_name) {
     fprintf(stderr, "Usage: %s <file> <printer_ip> [options]\n", prog_name);
-    fprintf(stderr, "--color			Print in color\n");
-    fprintf(stderr, "--greyscale		Print in monochrome\n");
-    fprintf(stderr, "--bw			Print in black and white\n");
-    fprintf(stderr, "--onesided			Print pages one sided (simplex)\n");
-    fprintf(stderr, "--twosided			Print pages two sided (duplex), flip image over long edge\n");
-    fprintf(stderr, "--twosided-longedge	Print pages two sided (duplex), flip image over long edge\n");
-    fprintf(stderr, "--twosided-shortedge	Print pages two sided (duplex), flip image over short edge\n");
-    fprintf(stderr, "--portrait			Print portrait orientation\n");
-    fprintf(stderr, "--landscape		Print landscape orientation\n");
-    fprintf(stderr, "--help,-h			Display help (this menu)\n");
+    fprintf(stderr, "--color                    Print in color\n");
+    fprintf(stderr, "--greyscale                Print in monochrome\n");
+    fprintf(stderr, "--bw                       Print in black and white\n");
+    fprintf(stderr, "--onesided                 Print pages one sided (simplex)\n");
+    fprintf(stderr, "--twosided                 Print pages two sided (duplex), flip image over long edge\n");
+    fprintf(stderr, "--twosided-longedge        Print pages two sided (duplex), flip image over long edge\n");
+    fprintf(stderr, "--twosided-shortedge       Print pages two sided (duplex), flip image over short edge\n");
+    fprintf(stderr, "--portrait                 Print portrait orientation\n");
+    fprintf(stderr, "--landscape                Print landscape orientation\n");
+    fprintf(stderr, "--help,-h                  Display help (this menu)\n");
     exit(1);
 }
 
