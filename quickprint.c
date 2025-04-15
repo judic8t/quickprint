@@ -196,7 +196,7 @@ int main(int argc, char *argv[]) {
     offset += sides_len;
 
     // Orientation
-    ipp_request[offset++] = 0x21;  // integer type
+    ipp_request[offset++] = 0x23;  // enum type
     const char* ipp_orientation_label = "orientation-requested";
     ipp_request[offset++] = 0x00;
     ipp_request[offset++] = strlen(ipp_orientation_label);
